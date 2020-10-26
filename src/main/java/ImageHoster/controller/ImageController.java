@@ -1,8 +1,10 @@
 package ImageHoster.controller;
 
+import ImageHoster.model.Comment;
 import ImageHoster.model.Image;
 import ImageHoster.model.Tag;
 import ImageHoster.model.User;
+import ImageHoster.service.CommentService;
 import ImageHoster.service.ImageService;
 import ImageHoster.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,9 @@ public class ImageController {
     @Autowired
     private TagService tagService;
 
+    @Autowired(required = true)
+    private CommentService commentservice;
+
     //This method displays all the images in the user home page after successful login
     @RequestMapping("images")
     public String getUserImages(Model model) {
@@ -49,6 +54,8 @@ public class ImageController {
     @RequestMapping("/images/{id}/{title}")
     public String showImage(@PathVariable("id") Integer id, @PathVariable("title") String title,Model model) {
         Image image = imageService.getImage(id);
+        List<Comment> commentList = commentservice.getComments(image.getId(), image.getTitle());
+        model.addAttribute("comments", commentList);
         model.addAttribute("image", image);
         model.addAttribute("tags", image.getTags());
         return "images/image";
@@ -95,6 +102,8 @@ public class ImageController {
     @RequestMapping(value = "/editImage")
     public String editImage(@RequestParam("imageId") Integer imageId, Model model, HttpSession session, RedirectAttributes redirectAttrs) {
         Image image = imageService.getImage(imageId);
+        List<Comment> commentList = commentservice.getComments(image.getId(), image.getTitle());
+        model.addAttribute("comments", commentList);
 
         if(isImageOwner(imageId, session)) {
             String tags = convertTagsToString(image.getTags());
